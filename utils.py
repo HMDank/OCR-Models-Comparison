@@ -34,12 +34,12 @@ def upload_image_to_cloudinary(pil_image):
 def process_image(method, image_file):
     start_time = time.time()
     if method == 'easyocr':
-        reader = easyocr.Reader(['de'])
-        result = reader.readtext(image_file, detail=0)
-        text = ' '.join(result)
-        words = text.split()
-        chunks = [' '.join(words[i:i+5]) for i in range(0, len(words), 5)]
-        result = '\n'.join(chunks) + '\n\n'
+        reader = easyocr.Reader(['de', 'en'])
+        result = reader.readtext(image_file, detail=0, paragraph=True)
+    # text = ' '.join(result)
+    # words = text.split()
+    # chunks = [' '.join(words[i:i+5]) for i in range(0, len(words), 5)]
+    # result = '\n'.join(chunks) + '\n\n'
 
     end_time = time.time()
     total_time = round(end_time - start_time, 3)
