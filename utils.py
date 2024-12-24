@@ -6,6 +6,12 @@ import time
 import toml
 import cloudinary
 from cloudinary.uploader import upload
+import streamlit as st
+import pandas as pd
+import numpy as np
+from PIL import Image
+from io import BytesIO
+import requests
 
 def upload_image_to_cloudinary(pil_image):
     # Configure Cloudinary
@@ -31,16 +37,28 @@ def upload_image_to_cloudinary(pil_image):
     return response.get("secure_url")
 
 
-def process_image(method, image_file):
-    start_time = time.time()
-    if method == 'easyocr':
-        reader = easyocr.Reader(['de', 'en'])
-        result = reader.readtext(image_file, detail=0, paragraph=True)
-    # text = ' '.join(result)
-    # words = text.split()
-    # chunks = [' '.join(words[i:i+5]) for i in range(0, len(words), 5)]
-    # result = '\n'.join(chunks) + '\n\n'
-
-    end_time = time.time()
-    total_time = round(end_time - start_time, 3)
-    return result, total_time
+def process_image(method_list, inputs):
+    results_df = pd.DataFrame() 
+    if not inputs:
+        return results_df
+    for method in method_list:
+        start_time = time.time()
+        if method == 'easyocr':
+            reader = easyocr.Reader(['de', 'en'])
+            for input in inputs:
+                if isinstance(input, st.runtime.uploaded_file_manager.UploadedFile):
+                    input_image = np.array(Image.open(input))
+                    image = Image.open(input)
+                elif isinstance(input, str):
+                    response = requests.get(input)
+                    input_image = image = Image.open(BytesIO(response.content))
+                final_image = upload_image_to_cloudinary(image)
+                result = reader.readtext(input_image, detail=0, paragraph=True)
+                end_time = time.time()
+                temp_df = pd.DataFrame([{
+                    'Image': final_image,
+                    'Result': result,
+                    'Processing Time': round(end_time - start_time, 3)
+                }])
+                results_df = pd.concat([results_df, temp_df], ignore_index=True)
+    return results_df
