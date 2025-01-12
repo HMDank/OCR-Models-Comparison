@@ -36,7 +36,7 @@ with column2:
 with column3:
     checked = st.checkbox("Use selected Data (Pictures taken by Dank himself :>)")
     image_list = get_selected_images() if checked else []
-choices = st.multiselect('Select Models:', ['easyocr'])
+choices = st.multiselect('Select Models:', ['easyocr', 'google-cloud-api'])
 if (uploaded_images or st.session_state["links"] or checked) and choices :
     if st.button('Start Analysis', use_container_width=True):
         images_df = process_image(choices, uploaded_images)
